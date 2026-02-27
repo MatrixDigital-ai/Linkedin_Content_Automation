@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #1e293b;
+  --background: #f5f5f4;
+  --foreground: #1c1917;
+  --card: #ffffff;
+  --muted: #a8a29e;
+  --border: #e7e5e4;
+  --accent: #0c4a6e;
 }
 
 @theme inline {
@@ -12,8 +16,51 @@
   --font-mono: var(--font-geist-mono);
 }
 
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), "Inter", system-ui, -apple-system, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Premium matte card surface */
+.card-surface {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.03), 0 1px 3px 0 rgb(0 0 0 / 0.04);
+}
+
+/* Formatted text — renders **bold**, numbered lists, bullet points cleanly */
+.formatted-text strong {
+  font-weight: 600;
+  color: #1c1917;
+}
+
+.formatted-text p {
+  margin-bottom: 0.5em;
+}
+
+.formatted-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
 }

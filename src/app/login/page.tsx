@@ -35,21 +35,30 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-stone-100/80 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-lg">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">
+        <div className="bg-white border border-stone-200/60 rounded-xl p-7 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <div className="w-11 h-11 rounded-xl bg-stone-900 flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="text-center mb-6">
+            <h1 className="text-lg font-semibold tracking-tight text-stone-900 mb-1">
               LinkedIn AI Engine
             </h1>
-            <p className="text-slate-500 text-sm">
-              Enter password to access the dashboard
+            <p className="text-stone-400 text-[13px]">
+              Enter your password to continue
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2.5 rounded-lg text-sm">
+              <div className="bg-red-50 border border-red-200/60 text-red-700 px-3.5 py-2 rounded-lg text-[13px] font-medium">
                 {error}
               </div>
             )}
@@ -57,7 +66,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-slate-700 mb-1.5"
+                className="block text-[13px] font-medium text-stone-700 mb-1.5"
               >
                 Password
               </label>
@@ -66,8 +75,8 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
-                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="••••••••"
+                className="w-full bg-stone-50 border border-stone-200 rounded-lg px-4 py-2.5 text-[13px] text-stone-800 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 transition-colors"
                 autoFocus
                 disabled={loading}
               />
@@ -76,12 +85,26 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading || !password}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold rounded-lg transition-colors duration-150 shadow-sm"
+              className="w-full h-10 bg-stone-900 hover:bg-stone-800 disabled:bg-stone-200 disabled:text-stone-400 text-white text-[13px] font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
             >
-              {loading ? "Signing in…" : "Sign In"}
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Signing in…
+                </>
+              ) : (
+                "Sign In"
+              )}
             </button>
           </form>
         </div>
+
+        <p className="text-center text-[11px] text-stone-400 mt-4">
+          Multi-model AI publishing platform
+        </p>
       </div>
     </div>
   );
