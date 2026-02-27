@@ -4,13 +4,15 @@ import { useState, useEffect, useMemo } from "react";
 
 /* ─── Types ──────────────────────────────────────── */
 
-type Model = "openai" | "gemini" | "claude";
+type Model = "openai" | "gemini" | "claude" | "geminiDirect" | "groq";
 
 interface GenerateResponse {
   id: string;
   openai: string;
   gemini: string;
   claude: string;
+  geminiDirect: string;
+  groq: string;
 }
 
 interface CanvaDesign {
@@ -46,6 +48,22 @@ const MODEL_LABELS: Record<
     bg: "bg-amber-50",
     text: "text-amber-700",
     dot: "bg-amber-500",
+  },
+  geminiDirect: {
+    name: "Gemini 2.0 Flash",
+    tag: "Google",
+    border: "border-violet-400",
+    bg: "bg-violet-50",
+    text: "text-violet-700",
+    dot: "bg-violet-500",
+  },
+  groq: {
+    name: "Llama 3.3 70B",
+    tag: "Groq",
+    border: "border-rose-400",
+    bg: "bg-rose-50",
+    text: "text-rose-700",
+    dot: "bg-rose-500",
   },
 };
 
@@ -194,7 +212,7 @@ export default function DashboardPage() {
     setExportedImageUrl(null);
     setPublished(false);
     setStep(0);
-    setStatus({ type: "info", message: "Generating content from 3 AI models in parallel…" });
+    setStatus({ type: "info", message: "Generating content from 5 AI models in parallel…" });
 
     try {
       const res = await fetch("/api/generate", {
@@ -209,7 +227,7 @@ export default function DashboardPage() {
       const data: GenerateResponse = await res.json();
       setOutputs(data);
       setStep(1);
-      setStatus({ type: "success", message: "Generation complete. Choose the version you prefer." });
+      setStatus({ type: "success", message: "All 5 models responded. Choose the version you prefer." });
     } catch (err) {
       setStatus({ type: "error", message: err instanceof Error ? err.message : "Generation failed." });
     } finally {
@@ -444,7 +462,7 @@ export default function DashboardPage() {
               <span className="w-5 h-5 rounded bg-stone-900 text-white flex items-center justify-center text-[10px] font-bold">2</span>
               <h2 className="text-sm font-semibold text-stone-900">Select Output</h2>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {(Object.keys(MODEL_LABELS) as Model[]).map((model) => {
                 const text = outputs[model];
                 const isError = text.startsWith("[");

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 const bodySchema = z.object({
   draftId: z.string().min(1),
-  selectedModel: z.enum(["openai", "gemini", "claude"]),
+  selectedModel: z.enum(["openai", "gemini", "claude", "geminiDirect", "groq"]),
   text: z.string().min(1).max(3000),
   imageUrl: z.string().url().optional(),
 });

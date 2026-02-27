@@ -8,13 +8,15 @@ datasource db {
 }
 
 model Draft {
-  id             String   @id @default(cuid())
-  prompt         String
-  openaiText     String?
-  geminiText     String?
-  claudeText     String?
-  selectedModel  String?
-  finalText      String?
+  id               String   @id @default(cuid())
+  prompt           String
+  openaiText       String?
+  geminiText       String?
+  claudeText        String?
+  geminiDirectText  String?
+  groqText          String?
+  selectedModel    String?
+  finalText        String?
   imageUrl       String?
   linkedinPostId String?
   published      Boolean  @default(false)
