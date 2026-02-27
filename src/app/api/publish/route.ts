@@ -7,6 +7,7 @@ const bodySchema = z.object({
   draftId: z.string().min(1),
   selectedModel: z.enum(["openai", "gemini", "claude"]),
   text: z.string().min(1).max(3000),
+  imageUrl: z.string().url().optional(),
 });
 
 /** Check if LinkedIn credentials are configured */
@@ -16,6 +17,55 @@ function isLinkedInConfigured(): boolean {
     process.env.LINKEDIN_AUTHOR_URN &&
     process.env.LINKEDIN_AUTHOR_URN !== "urn:li:person:XXXX"
   );
+}
+
+/**
+ * Upload an image to LinkedIn and return its URN.
+ * 1. Downloads the image from the given URL (e.g. Canva export).
+ * 2. Initializes an upload on LinkedIn.
+ * 3. PUTs the binary to the upload URL.
+ */
+async function uploadImageToLinkedIn(imageUrl: string): Promise<string> {
+  const token = process.env.LINKEDIN_ACCESS_TOKEN!;
+  const author = process.env.LINKEDIN_AUTHOR_URN!;
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "LinkedIn-Version": "202401",
+    "X-Restli-Protocol-Version": "2.0.0",
+    "Content-Type": "application/json",
+  };
+
+  // 1. Download image from Canva export URL
+  const imageRes = await axios.get(imageUrl, {
+    responseType: "arraybuffer",
+    timeout: 30_000,
+  });
+  const imageBuffer = Buffer.from(imageRes.data);
+
+  // 2. Initialize upload on LinkedIn
+  const initRes = await axios.post(
+    "https://api.linkedin.com/rest/images?action=initializeUpload",
+    { initializeUploadRequest: { owner: author } },
+    { headers, timeout: 15_000 }
+  );
+
+  const uploadUrl = initRes.data?.value?.uploadUrl;
+  const imageUrn = initRes.data?.value?.image;
+
+  if (!uploadUrl || !imageUrn) {
+    throw new Error("LinkedIn did not return upload URL or image URN");
+  }
+
+  // 3. Upload binary
+  await axios.put(uploadUrl, imageBuffer, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/octet-stream",
+    },
+    timeout: 60_000,
+  });
+
+  return imageUrn;
 }
 
 export async function POST(req: Request) {
@@ -37,26 +87,52 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const { draftId, selectedModel, text } = parsed.data;
+    const { draftId, selectedModel, text, imageUrl } = parsed.data;
 
     let linkedinPostId = "dry-run-" + Date.now();
     let dryRun = false;
 
     if (isLinkedInConfigured()) {
+      /* ── Upload image if provided ──────────────── */
+      let imageUrn: string | null = null;
+      if (imageUrl) {
+        try {
+          imageUrn = await uploadImageToLinkedIn(imageUrl);
+        } catch (imgErr) {
+          console.error("[publish] Image upload failed:", imgErr);
+          return NextResponse.json(
+            {
+              error:
+                "Failed to upload image to LinkedIn. Post not published.",
+            },
+            { status: 500 }
+          );
+        }
+      }
+
+      /* ── Build LinkedIn post payload ───────────── */
+      const postBody: Record<string, unknown> = {
+        author: process.env.LINKEDIN_AUTHOR_URN,
+        commentary: text,
+        visibility: "PUBLIC",
+        distribution: {
+          feedDistribution: "MAIN_FEED",
+          targetEntities: [],
+          thirdPartyDistributionChannels: [],
+        },
+        lifecycleState: "PUBLISHED",
+      };
+
+      if (imageUrn) {
+        postBody.content = {
+          media: { title: "Design", id: imageUrn },
+        };
+      }
+
       /* ── Post to LinkedIn (LIVE) ────────────────── */
       const linkedinResponse = await axios.post(
         "https://api.linkedin.com/v2/posts",
-        {
-          author: process.env.LINKEDIN_AUTHOR_URN,
-          commentary: text,
-          visibility: "PUBLIC",
-          distribution: {
-            feedDistribution: "MAIN_FEED",
-            targetEntities: [],
-            thirdPartyDistributionChannels: [],
-          },
-          lifecycleState: "PUBLISHED",
-        },
+        postBody,
         {
           headers: {
             Authorization: `Bearer ${process.env.LINKEDIN_ACCESS_TOKEN}`,
@@ -75,7 +151,9 @@ export async function POST(req: Request) {
     } else {
       /* ── Dry-run mode (LinkedIn not configured) ── */
       dryRun = true;
-      console.log("[publish] DRY RUN — LinkedIn not configured. Saving draft only.");
+      console.log(
+        "[publish] DRY RUN — LinkedIn not configured. Saving draft only."
+      );
     }
 
     /* ── Update draft record ─────────────────────── */
@@ -84,6 +162,7 @@ export async function POST(req: Request) {
       data: {
         selectedModel,
         finalText: text,
+        imageUrl: imageUrl ?? null,
         linkedinPostId: String(linkedinPostId),
         published: !dryRun,
       },
@@ -95,12 +174,13 @@ export async function POST(req: Request) {
       dryRun,
       message: dryRun
         ? "Draft saved (dry run). LinkedIn not configured yet — add LINKEDIN_ACCESS_TOKEN and LINKEDIN_AUTHOR_URN to go live."
+        : imageUrl
+        ? "Published to LinkedIn with image successfully!"
         : "Published to LinkedIn successfully!",
     });
   } catch (err) {
     console.error("[publish] Error:", err);
 
-    // Forward LinkedIn API errors for debugging
     if (axios.isAxiosError(err) && err.response) {
       return NextResponse.json(
         {

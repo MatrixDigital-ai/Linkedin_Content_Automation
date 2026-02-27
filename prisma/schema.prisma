@@ -15,8 +15,17 @@ model Draft {
   claudeText     String?
   selectedModel  String?
   finalText      String?
+  imageUrl       String?
   linkedinPostId String?
   published      Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model CanvaToken {
+  id           String    @id @default("singleton")
+  accessToken  String
+  refreshToken String?
+  expiresAt    DateTime?
+  updatedAt    DateTime  @updatedAt
 }
