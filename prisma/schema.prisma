@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Draft {
+  id             String   @id @default(cuid())
+  prompt         String
+  openaiText     String?
+  geminiText     String?
+  claudeText     String?
+  selectedModel  String?
+  finalText      String?
+  linkedinPostId String?
+  published      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
