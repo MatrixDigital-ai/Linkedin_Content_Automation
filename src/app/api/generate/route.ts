@@ -85,9 +85,18 @@ export async function POST(req: Request) {
     }
 
     /* ── Validate body ─────────────────────────────── */
-    const body = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400 }
+      );
+    }
     const parsed = bodySchema.safeParse(body);
     if (!parsed.success) {
+      console.error("[generate] Validation failed:", JSON.stringify(parsed.error.flatten()), "Body received:", JSON.stringify(body));
       return NextResponse.json(
         { error: "Invalid prompt", details: parsed.error.flatten() },
         { status: 400 }
@@ -118,7 +127,7 @@ export async function POST(req: Request) {
     );
     const model3Call = callOpenRouter(
       process.env.OPENROUTER_KEY_MODEL3!,
-      process.env.MODEL3_ID ?? "zhipu-ai/glm-4.5-air:free",
+      process.env.MODEL3_ID ?? "zhipu-ai/glm-z1-air:free",
       messages
     );
 
