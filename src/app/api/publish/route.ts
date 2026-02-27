@@ -20,6 +20,21 @@ function isLinkedInConfigured(): boolean {
 }
 
 /**
+ * Strip markdown-style formatting for LinkedIn (plain text only).
+ * - **bold** → bold
+ * - *italic* → italic
+ * - ◆ bullets → •
+ * - Remove ## headings markers
+ */
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "$1")   // **bold** → bold
+    .replace(/\*(.+?)\*/g, "$1")        // *italic* → italic
+    .replace(/^#{1,6}\s+/gm, "")        // ## Heading → Heading
+    .replace(/◆/g, "•");                // ◆ → •
+}
+
+/**
  * Upload an image to LinkedIn and return its URN.
  * 1. Downloads the image from the given URL (e.g. Canva export).
  * 2. Initializes an upload on LinkedIn.
@@ -88,6 +103,7 @@ export async function POST(req: Request) {
       );
     }
     const { draftId, selectedModel, text, imageUrl } = parsed.data;
+    const cleanText = stripMarkdown(text);
 
     let linkedinPostId = "dry-run-" + Date.now();
     let dryRun = false;
@@ -113,7 +129,7 @@ export async function POST(req: Request) {
       /* ── Build LinkedIn post payload ───────────── */
       const postBody: Record<string, unknown> = {
         author: process.env.LINKEDIN_AUTHOR_URN,
-        commentary: text,
+        commentary: cleanText,
         visibility: "PUBLIC",
         distribution: {
           feedDistribution: "MAIN_FEED",
