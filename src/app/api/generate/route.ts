@@ -9,7 +9,7 @@ const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 const bodySchema = z.object({
-  prompt: z.string().min(1).max(2000),
+  prompt: z.string().min(1).max(15000),
 });
 
 /** Parse OpenAI-compatible chat completion response */
